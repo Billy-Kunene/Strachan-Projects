@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Basic Project Tracker</title>
+  <style>
+    body { font-family: sans-serif; background: #f4f5f7; padding: 20px; }
+    .controls { margin-bottom: 20px; }
+    input, button { padding: 8px; font-size: 14px; }
+    .board { display: flex; gap: 20px; }
+    .column { background: #ebecf0; border-radius: 6px; width: 300px; padding: 10px; min-height: 400px; }
+    .task { background: white; padding: 10px; margin-bottom: 10px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); display: flex; justify-content: space-between; }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <input type="text" id="taskInput" placeholder="Enter a new task...">
+    <button onclick="addTask()">Add Task</button>
+  </div>
+
+  <div class="board">
+    <div class="column" id="todo"><h3>To Do</h3></div>
+    <div class="column" id="inprogress"><h3>In Progress</h3></div>
+    <div class="column" id="done"><h3>Done</h3></div>
+  </div>
+
+  <script>
+    let tasks = JSON.parse(localStorage.getItem('pm_tasks')) || [];
+
+    function saveAndRender() {
+      localStorage.setItem('pm_tasks', JSON.stringify(tasks));
+      ['todo', 'inprogress', 'done'].forEach(col => {
+        const el = document.getElementById(col);
+        el.innerHTML = `<h3>${el.querySelector('h3').innerText}</h3>`;
+      });
+
+      tasks.forEach((task, index) => {
+        const card = document.createElement('div');
+        card.className = 'task';
+        card.innerHTML = `
+          <span>${task.text}</span>
+          <div>
+            ${task.status !== 'done' ? `<button onclick="moveTask(${index})">→</button>` : ''}
+            <button onclick="deleteTask(${index})">✕</button>
+          </div>
+        `;
+        document.getElementById(task.status).appendChild(card);
+      });
+    }
+
+    function addTask() {
+      const input = document.getElementById('taskInput');
+      if (!input.value.trim()) return;
+      tasks.push({ text: input.value, status: 'todo' });
+      input.value = '';
+      saveAndRender();
+    }
+
+    function moveTask(index) {
+      const order = ['todo', 'inprogress', 'done'];
+      const next = order.indexOf(tasks[index].status) + 1;
+      if (next < order.length) tasks[index].status = order[next];
+      saveAndRender();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      saveAndRender();
+    }
+
+    saveAndRender();
+  </script>
+</body>
+</html>
